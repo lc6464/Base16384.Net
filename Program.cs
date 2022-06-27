@@ -40,7 +40,7 @@ string outputStr = Encoding.Unicode.GetString(outputData.ToArray());
 var e = DateTime.Now;
 //Console.WriteLine(outputStr);
 
-using var file = File.Create(@"D:\LC\Desktop\test.txt");
+using var file = File.Create(@"test.txt");
 data = Encoding.Unicode.GetBytes(outputStr);
 file.Write(data, 0, data.Length);
 file.Flush();
