@@ -6,5 +6,5 @@
 
 解码也没写。
 
-编码部分代码参考于 [shigma/base16384](https://github.com/shigma/base16384) ，<br/>
-[fumiama/base16384](https://github.com/fumiama/base16384)看不太懂，仍需好好学习啊。
+编码部分代码参考于 [shigma/base16384](https://github.com/shigma/base16384)，<br/>
+[fumiama/base16384](https://github.com/fumiama/base16384) 看不太懂，仍需好好学习啊。
