@@ -2,14 +2,14 @@
 Console.WriteLine("Hello, World!");
 
 
-//Console.Write("内容：");
-//string text = Console.ReadLine() ?? "";
+Console.Write("内容：");
+string text = Console.ReadLine() ?? "";
 
-//var data = Encoding.UTF8.GetBytes(text);
+var data = Encoding.UTF8.GetBytes(text);
 
 //var data = File.ReadAllBytes(@"最终.png");
 
-var data = Encoding.UTF8.GetBytes("这只是一段测试文本啦！啊哈哈哈！");
+//var data = Encoding.UTF8.GetBytes("这只是一段测试文本啦！啊哈哈哈！");
 
 int offset = 0, rest = 0;
 List<byte> outputData = new();
