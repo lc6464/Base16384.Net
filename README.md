@@ -1,10 +1,10 @@
 # Base16384Coder
 
-»ù±¾Ö»ÊÇÃãÇ¿ÄÜÓÃ°ÕÁË¡£
+åŸºæœ¬åªæ˜¯å‹‰å¼ºèƒ½ç”¨ç½¢äº†ã€‚
 
-ĞÔÄÜÍ¦²îµÄ¡£
+æ€§èƒ½æŒºå·®çš„ã€‚
 
-½âÂëÒ²Ã»Ğ´¡£
+è§£ç ä¹Ÿæ²¡å†™ã€‚
 
-±àÂë²¿·Ö´úÂë²Î¿¼ÓÚ [shigma/base16384](https://github.com/shigma/base16384)£¬<br/>
-[fumiama/base16384](https://github.com/fumiama/base16384) ¿´²»Ì«¶®£¬ÈÔĞèºÃºÃÑ§Ï°°¡¡£
+ç¼–ç éƒ¨åˆ†ä»£ç å‚è€ƒäº [shigma/base16384](https://github.com/shigma/base16384)ï¼Œ<br/>
+[fumiama/base16384](https://github.com/fumiama/base16384) çœ‹ä¸å¤ªæ‡‚ï¼Œä»éœ€å¥½å¥½å­¦ä¹ å•Šã€‚
