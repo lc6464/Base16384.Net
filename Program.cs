@@ -1,48 +1,60 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
 
-Console.WriteLine("Hello, World!");
-
-
-Console.Write("内容：");
-
-var text = Console.ReadLine() ?? "";
-
-var data = Encoding.UTF8.GetBytes(text);
-
-var u16bes = new byte[] { 0xfe, 0xff };
-
-unsafe {
-	var s = DateTime.Now;
-
-	var dataPtr = (byte*)Marshal.AllocHGlobal(data.Length);
-	Marshal.Copy(data, 0, (IntPtr)dataPtr, data.Length);
-	var outPtr = (byte*)Marshal.AllocHGlobal(8192 * 1024 / 7 * 7);
-	var outData = new byte[Base16384.Base16384.Encode(dataPtr, data.Length, outPtr, 8192 * 1024 / 7 * 7)];
-	Marshal.Copy((IntPtr)outPtr, outData, 0, outData.Length);
-	Marshal.FreeHGlobal((IntPtr)outPtr);
-	Marshal.FreeHGlobal((IntPtr)dataPtr);
-
-	var e = DateTime.Now;
-	Console.WriteLine((e - s).TotalMilliseconds);
-
-	using var file2 = File.Create(@"D:\LC\Desktop\testCPtr.txt");
-	file2.Write(u16bes, 0, 2);
-	file2.Write(outData, 0, outData.Length);
-	file2.Flush();
-
-
-	s = DateTime.Now;
-
-	var decodingPtr = (byte*)Marshal.AllocHGlobal(outData.Length);
-	Marshal.Copy(outData, 0, (IntPtr)decodingPtr, outData.Length);
-	var decodedPtr = (byte*)Marshal.AllocHGlobal(8192 * 1024 / 7 * 7);
-	var decodedData = new byte[Base16384.Base16384.Decode(decodingPtr, outData.Length, decodedPtr, 8192 * 1024 / 7 * 7)];
-	Marshal.Copy((IntPtr)decodedPtr, decodedData, 0, decodedData.Length);
-	Marshal.FreeHGlobal((IntPtr)decodingPtr);
-	Marshal.FreeHGlobal((IntPtr)decodedPtr);
-
-	e = DateTime.Now;
-	Console.WriteLine((e - s).TotalMilliseconds);
-
-	File.WriteAllBytes(@"D:\LC\Desktop\testDecode.txt", decodedData);
+DirectoryInfo directoryInfo = new("Source");
+if (!directoryInfo.Exists) {
+	Console.WriteLine("无 Source 文件夹！");
+	Environment.Exit(1);
 }
+
+var files = directoryInfo.GetFiles();
+if (files.Length == 0) {
+	Console.WriteLine("Source 文件夹为空！");
+	Environment.Exit(2);
+}
+
+if (!Directory.Exists("Result")) {
+	if (File.Exists("Result")) {
+		Console.WriteLine("Result 存在但为文件！");
+		Environment.Exit(3);
+	}
+	Directory.CreateDirectory("Result");
+}
+
+foreach (var file in files) {
+	FileInfo encodedFileInfo = new(@$"Result\{file.Name}.Encode"),
+		decodedFileInfo = new(@$"Result\{file.Name}.Decode");
+
+	Base16384.EncodeFromFileToNewFile(file, encodedFileInfo);
+	Base16384.DecodeFromFileToNewFile(encodedFileInfo, decodedFileInfo);
+
+	using var encP = new Process();
+	encP.StartInfo.FileName = "base16384.com";
+	encP.StartInfo.Arguments = $"-e \"{file.FullName}\" \"{encodedFileInfo.FullName}.Raw\"";
+	encP.StartInfo.RedirectStandardOutput = true;
+	encP.Start();
+	encP.WaitForExit(5000);
+	var encS = encP.StandardOutput.ReadToEnd();
+	if (!string.IsNullOrWhiteSpace(encS)) {
+		Console.WriteLine($"{file.Name} - encR - {encS}");
+	} else if (encP.ExitCode != 0) {
+		Console.WriteLine($"{file.Name} - encR - {encP.ExitCode}");
+	}
+
+	using var decP = new Process();
+	decP.StartInfo.FileName = "base16384.com";
+	decP.StartInfo.Arguments = $"-d \"{encodedFileInfo.FullName}.Raw\" \"{decodedFileInfo.FullName}.Raw\"";
+	decP.StartInfo.RedirectStandardOutput = true;
+	decP.Start();
+	decP.WaitForExit(5000);
+	var decS = decP.StandardOutput.ReadToEnd();
+	if (!string.IsNullOrWhiteSpace(decS)) {
+		Console.WriteLine($"{file.Name} - decR - {decS}");
+	} else if (decP.ExitCode != 0) {
+		Console.WriteLine($"{file.Name} - encR - {decP.ExitCode}");
+	}
+
+	Console.WriteLine($"{file.Name} - Finished.");
+}
+
+Console.WriteLine("\nAll done.");

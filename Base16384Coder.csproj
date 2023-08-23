@@ -1,13 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<Version>0.0.1.0</Version>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<ItemGroup>
+		<Reference Include="LC6464.Base16384">
+			<HintPath>..\..\.NET Library\LC6464.Base16384\bin\Debug\net7.0\LC6464.Base16384.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
 		<Using Include="System.Text" />
+		<Using Include="System.Runtime.InteropServices" />
+		<Using Include="LC6464.Base16384" />
 	</ItemGroup>
 </Project>
