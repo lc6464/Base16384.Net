@@ -1,12 +1,5 @@
-# Base16384Coder
+# Base16384.Net
 
-**由于学业繁忙（高三），暂停移植计划。**
-
-基本只是勉强能用罢了。
-
-性能挺差的。
-
-解码也没写。
-
-编码部分代码参考于 [shigma/base16384](https://github.com/shigma/base16384)，<br/>
-[fumiama/base16384](https://github.com/fumiama/base16384) 看不太懂，仍需好好学习啊。
+实现已移动到 [lc6464/LC6464.Base16384](https://github.com/lc6464/LC6464.Base16384 "GitHub: lc6464/LC6464.Base16384")
+目前大文件解码部分仍存在问题，正在修复中，欢迎 PR。
+此项目将会引用实现后的库，作为控制台应用程序供用户使用。
