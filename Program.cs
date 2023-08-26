@@ -21,7 +21,7 @@
 		}
 
 		foreach (var file in files) {
-			FileInfo encodedFileInfo = new(@$"Result\{file.Name}.Encoded");
+			FileInfo encodedFileInfo = new(Path.Combine("Result", $"{file.Name}.Encoded"));
 
 			Base16384.EncodeFromFileToNewFile(file, encodedFileInfo);
 
@@ -51,7 +51,7 @@
 		}
 
 		foreach (var file in files) {
-			FileInfo decodedFileInfo = new(@$"Result\{file.Name}.Decoded");
+			FileInfo decodedFileInfo = new(Path.Combine("Result", $"{file.Name}.Decoded"));
 
 			Base16384.DecodeFromFileToNewFile(file, decodedFileInfo);
 
