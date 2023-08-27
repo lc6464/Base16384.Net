@@ -7,7 +7,10 @@
 		<Version>1.0.1.0</Version>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="LC6464.Base16384" Version="1.1.0" />
+		<!--<PackageReference Include="LC6464.Base16384" Version="1.1.0" />-->
+		<Reference Include="LC6464.Base16384">
+			<HintPath>..\..\.NET Library\LC6464.Base16384\bin\Debug\net7.0\LC6464.Base16384.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<ItemGroup>
 		<Using Include="System.Runtime.InteropServices" />
