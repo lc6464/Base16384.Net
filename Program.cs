@@ -6,12 +6,13 @@
 				Console.WriteLine("未指定文件或目录");
 				return 5;
 			}
-			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : $"{args[1]}\\Result", true) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.Encoded", true);
+			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : Path.Combine(args[1], "Result"), true) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.Encoded", true);
 		case "-d":
 			if (args.Length < 2) {
-				Console.WriteLine("未指定文件或目录"); return 5;
+				Console.WriteLine("未指定文件或目录");
+				return 5;
 			}
-			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : $"{args[1]}\\Result", false) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.Encoded", false);
+			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : Path.Combine(args[1], "Result"), true) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.Encoded", false);
 		case "e":
 			return EncodeOrDecodeDirectory("Source", "Result", true);
 		case "d":
@@ -24,7 +25,7 @@
 Console.WriteLine("Unknown argument.");
 return 4;
 // mode: true为encode，false为decode
-int EncodeOrDecodeDirectory(string inputPath,string outputPath,bool mode) {
+int EncodeOrDecodeDirectory(string inputPath, string outputPath, bool mode) {
 	DirectoryInfo directoryInfo = new(inputPath);
 	if (!directoryInfo.Exists) {
 		Console.WriteLine($"无 {inputPath} 文件夹！");
