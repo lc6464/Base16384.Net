@@ -23,3 +23,7 @@ Base16384.Net.exe <e|d>
 ```
 - e: Encode，将 Source 目录下的文件编码至 Result 目录下
 - d: Decode，将 Encoded 目录下的文件解码至 Result 目录下
+
+## 另一种使用方法
+
+成熟的程序员应该自己看代码来发现使用方法。
