@@ -1,6 +1,5 @@
 ﻿if (args.Length <= 3) {
-	switch (args[0])
-	{
+	switch (args[0]) {
 		case "-e":
 			if (args.Length < 2) {
 				Console.WriteLine("未指定文件或目录");
