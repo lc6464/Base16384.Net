@@ -1,98 +1,88 @@
 ﻿using System.Text;
 using System.Diagnostics;
 
-Span<byte> buffer = new byte[8388650];
-Span<byte> codingBuffer = new byte[Math.Max(Base16384.EncodeLength(Base16384.Buffer0Length), Base16384.DecodeLength(Base16384.Buffer1Length)) + 16]; /*{ // 编码
-	DirectoryInfo directoryInfo = new("Source");
-	if (!directoryInfo.Exists) {
-		Console.WriteLine("无 Source 文件夹！");
-		return 1;
+var workPath = @"D:\\temp\\Source";
+FileInfo sourceFileInfo = new(Path.Combine(workPath, "test.bin"));
+FileInfo encodedByCFileInfo = new($"{sourceFileInfo.FullName}.encodedByC");
+FileInfo encodedByNetFileInfo = new($"{sourceFileInfo.FullName}.encodedByNet");
+FileInfo encodedByCDecodedByCFileInfo = new($"{encodedByCFileInfo.FullName}.decodedByC");
+FileInfo encodedByCDecodedByNetFileInfo = new($"{encodedByCFileInfo.FullName}.decodedByNet");
+FileInfo encodedByNetDecodedByCFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
+FileInfo encodedByNetDecodedByNetFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
+
+Debug();
+
+
+return;
+
+void Debug() {
+	using (var encodedByCFileStream = new FileStream(encodedByCFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
+		Base16384.DecodeToNewFile(encodedByCFileStream, encodedByCDecodedByNetFileInfo);
+		CompareFile(encodedByCDecodedByCFileInfo, encodedByCDecodedByNetFileInfo, "decoded: ");
 	}
-
-	var files = directoryInfo.GetFiles();
-	if (files.Length == 0) {
-		Console.WriteLine("Source 文件夹为空！");
-		return 2;
+}
+// ConvertFromUtf16BEBytesToUtf8Bytes测试ok
+void Test1() {
+	var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test1.txt"), FileMode.Open), Encoding.BigEndianUnicode);
+	var readString = reader.ReadToEnd();
+	var bytes = Base16384.ConvertFromUtf16BEBytesToUtf8Bytes(Encoding.BigEndianUnicode.GetBytes(readString).ToArray());
+	reader.Dispose();
+	var writer =
+		new StreamWriter(new FileStream(Path.Combine(workPath, "Test1out.txt"), FileMode.Create, FileAccess.Write),
+			Encoding.UTF8);
+	writer.Write(Encoding.UTF8.GetString(bytes));
+	writer.Dispose();
+}
+// ConvertFromUtf16BEBytesToUtf16LEBytes测试ok
+void Test2() {
+	var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test2.txt"), FileMode.Open), Encoding.BigEndianUnicode);
+	var readString = reader.ReadToEnd();
+	var bytes = Base16384.ConvertFromUtf16BEBytesToUtf16LEBytes(Encoding.BigEndianUnicode.GetBytes(readString).ToArray());
+	reader.Dispose();
+	var outFileStream = new FileStream(Path.Combine(workPath, "Test2out.txt"), FileMode.Create, FileAccess.Write);
+	outFileStream.Write(bytes);
+	outFileStream.Dispose();
+}
+// ConvertFromUtf16BEBytesToString测试ok
+void Test3() {
+	var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test3.txt"), FileMode.Open, FileAccess.Read), Encoding.BigEndianUnicode);
+	Console.WriteLine(reader.ReadToEnd());
+	reader.Dispose();
+}
+// EncodeToNewFile/DecodeToNewFile(Stream, FileInfo) 测试 建议LC测试
+void Test4() {
+	using (var sourceFileStream = new FileStream(sourceFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
+		Base16384.EncodeToNewFile(sourceFileStream, encodedByNetFileInfo);
+		CompareFile(encodedByCFileInfo, encodedByNetFileInfo, "encoded: ");
 	}
-
-	if (!Directory.Exists("Result")) {
-		if (File.Exists("Result")) {
-			Console.WriteLine("Result 存在但为文件！");
-			return 3;
-		}
-		Directory.CreateDirectory("Result");
+	using (var encodedByNetFileStream = new FileStream(encodedByNetFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
+		Base16384.DecodeToNewFile(encodedByNetFileStream, encodedByNetDecodedByNetFileInfo);
+		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo, "decoded: ");
 	}
-
-	foreach (var file in files) {
-		FileInfo encodedFileInfo = new(Path.Combine("Result", $"{file.Name}.Encoded"));
-
-		Base16384.EncodeFromFileToNewFile(file, encodedFileInfo, buffer, codingBuffer);
-		//ProcessByC.Encode(file, new(Path.Combine("Result", $"{file.Name}")));
-
-		Console.WriteLine($"{file.Name} - Finished.");
-	}
-
-	Console.WriteLine("\nEncode all done.");
-} { // 解码
-	DirectoryInfo directoryInfo = new("Result");
-	if (!directoryInfo.Exists) {
-		Console.WriteLine("无 Encoded 文件夹！");
-		return 1;
-	}
-
-	var files = directoryInfo.GetFiles();
-	if (files.Length == 0) {
-		Console.WriteLine("Encoded 文件夹为空！");
-		return 2;
-	}
-
-	if (!Directory.Exists("Result")) {
-		if (File.Exists("Result")) {
-			Console.WriteLine("Result 存在但为文件！");
-			return 3;
-		}
-		Directory.CreateDirectory("Result");
-	}
-
-	foreach (var file in files) {
-		FileInfo decodedFileInfo = new(Path.Combine("Result", $"{file.Name}.Decoded"));
-
-		Base16384.DecodeFromFileToNewFile(file, decodedFileInfo, buffer, codingBuffer);
-		//ProcessByC.Decode(file, new(Path.Combine("Result", $"{file.Name}")));
-
-		Console.WriteLine($"{file.Name} - Finished.");
-	}
-
-	Console.WriteLine("\nDecode all done.");
 }
 
-foreach (var file in new DirectoryInfo("Source").GetFiles()) {
-	file.CopyTo(Path.Combine("Result", file.Name), true);
+void CompareFile(FileInfo info1, FileInfo info2, string tips = "") {
+	var bytes1 = File.ReadAllBytes(info1.FullName);
+	var bytes2 = File.ReadAllBytes(info2.FullName);
+	if (bytes1.Length != bytes2.Length) {
+		Console.WriteLine($"{tips}两个文件大小不同");
+		return;
+	}
+	var i = 0;
+	while (i < bytes1.Length) {
+		if (bytes1[i] != bytes2[i]) {
+			Console.WriteLine($"{tips}两个文件内容不同");
+			return;
+		}
+		i++;
+	}
+	Console.WriteLine($"{tips}两个文件相同");
 }
-*/
-
-DirectoryInfo directoryInfo = new("Source");
-
-var fileInfo = directoryInfo.GetFiles()[0];
-
-var stream = new MemoryStream();
-
-Base16384.EncodeFromFileToStream(fileInfo, stream, buffer, codingBuffer);
-
-ReadOnlySpan<byte> data = stream.ToArray();
-
-using var file = File.Create(@"D:\LC\Desktop\test.txt");
-file.Write(data.ConvertFromUtf16BEBytesToUtf8BOMBytes());
-
-return 0;
-
-
-
 internal static class ProcessByC {
 	public static void Encode(FileInfo sourceFileInfo, FileInfo encodedFileInfo) {
 		using Process process = new();
 		process.StartInfo.FileName = "base16384.com";
-		process.StartInfo.Arguments = $"-e \"{sourceFileInfo.FullName}\" \"{encodedFileInfo.FullName}.encodedByC\"";
+		process.StartInfo.Arguments = $"-e \"{sourceFileInfo.FullName}\" \"{encodedFileInfo.FullName}\"";
 		process.StartInfo.RedirectStandardOutput = true;
 		process.Start();
 		if (!process.WaitForExit(5000)) {
@@ -107,7 +97,7 @@ internal static class ProcessByC {
 	public static void Decode(FileInfo encodedFileInfo, FileInfo decodedFileInfo) {
 		using Process process = new();
 		process.StartInfo.FileName = "base16384.com";
-		process.StartInfo.Arguments = $"-d \"{encodedFileInfo.FullName}\" \"{decodedFileInfo.FullName}.decodedByC\"";
+		process.StartInfo.Arguments = $"-d \"{encodedFileInfo.FullName}\" \"{decodedFileInfo.FullName}\"";
 		process.StartInfo.RedirectStandardOutput = true;
 		process.Start();
 		if (!process.WaitForExit(5000)) {
