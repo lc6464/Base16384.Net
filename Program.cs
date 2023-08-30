@@ -20,60 +20,54 @@ void Debug() {
 }
 // ConvertFromUtf16BEBytesToUtf8Bytes测试ok
 void Test1() {
-	var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test1.txt"), FileMode.Open), Encoding.BigEndianUnicode);
+	using var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test1.txt"), FileMode.Open), Encoding.BigEndianUnicode);
 	var readString = reader.ReadToEnd();
 	var bytes = Base16384.ConvertFromUtf16BEBytesToUtf8Bytes(Encoding.BigEndianUnicode.GetBytes(readString).ToArray());
-	reader.Dispose();
-	var writer =
+	using var writer =
 		new StreamWriter(new FileStream(Path.Combine(workPath, "Test1out.txt"), FileMode.Create, FileAccess.Write),
 			Encoding.UTF8);
 	writer.Write(Encoding.UTF8.GetString(bytes));
-	writer.Dispose();
 }
 // ConvertFromUtf16BEBytesToUtf16LEBytes测试ok
 void Test2() {
-	var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test2.txt"), FileMode.Open), Encoding.BigEndianUnicode);
+	using var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test2.txt"), FileMode.Open), Encoding.BigEndianUnicode);
 	var readString = reader.ReadToEnd();
 	var bytes = Base16384.ConvertFromUtf16BEBytesToUtf16LEBytes(Encoding.BigEndianUnicode.GetBytes(readString).ToArray());
-	reader.Dispose();
-	var outFileStream = new FileStream(Path.Combine(workPath, "Test2out.txt"), FileMode.Create, FileAccess.Write);
+	using var outFileStream = new FileStream(Path.Combine(workPath, "Test2out.txt"), FileMode.Create, FileAccess.Write);
 	outFileStream.Write(bytes);
-	outFileStream.Dispose();
 }
 // ConvertFromUtf16BEBytesToString 测试ok
 void Test3() {
-	var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test3.txt"), FileMode.Open, FileAccess.Read), Encoding.BigEndianUnicode);
+	using var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test3.txt"), FileMode.Open, FileAccess.Read), Encoding.BigEndianUnicode);
 	Console.WriteLine(reader.ReadToEnd());
 	reader.Dispose();
 }
 // EncodeToNewFile/DecodeToNewFile(Stream, FileInfo) 测试 ???
 void Test4() {
-	var sourceStream = File.OpenRead(sourceFileInfo.FullName);
+	using var sourceStream = File.OpenRead(sourceFileInfo.FullName);
 	Base16384.EncodeToNewFile(sourceStream, encodedByNetFileInfo);
 	sourceStream.Dispose();
 	CompareFile(encodedByCFileInfo, encodedByNetFileInfo, "encoded: ");
 	
-	var encodedStream = File.OpenRead(encodedByNetFileInfo.FullName);
+	using var encodedStream = File.OpenRead(encodedByNetFileInfo.FullName);
 	encodedStream.Position += 2;
 	Base16384.DecodeToNewFile(encodedStream, encodedByNetDecodedByNetFileInfo);
 	encodedStream.Dispose();
 	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo, "decoded: ");
 }
-// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试
+// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试 ???
 void Test5() {
-	using (var sourceFileStream = new FileStream(sourceFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
-		sourceFileStream.Position += 2;
-		var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(sourceFileStream);
-		File.WriteAllBytes(encodedByNetFileInfo.FullName, encodedMemoryStream.ToArray());
-		CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
-	}
+	using var sourceFileStream = new FileStream(sourceFileInfo.FullName, FileMode.Open, FileAccess.Read);
+	sourceFileStream.Position += 2;
+	var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(sourceFileStream);
+	File.WriteAllBytes(encodedByNetFileInfo.FullName, encodedMemoryStream.ToArray());
+	CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 
-	using (var encodedByNetFileStream = new FileStream(encodedByNetFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
-		encodedByNetFileStream.Position += 2;
-		var decodedMemoryStream = Base16384.EncodeToNewMemoryStream(encodedByNetFileStream);
-		File.WriteAllBytes(encodedByNetDecodedByNetFileInfo.FullName, decodedMemoryStream.ToArray());
-		CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
-	}
+	using var encodedByNetFileStream = new FileStream(encodedByNetFileInfo.FullName, FileMode.Open, FileAccess.Read);
+	encodedByNetFileStream.Position += 2;
+	var decodedMemoryStream = Base16384.EncodeToNewMemoryStream(encodedByNetFileStream);
+	File.WriteAllBytes(encodedByNetDecodedByNetFileInfo.FullName, decodedMemoryStream.ToArray());
+	CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 }
 // EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试
 void Test6() { }
@@ -83,14 +77,12 @@ void Test7() {
 	Base16384.EncodeToNewFile(sourceBytes, encodedByNetFileInfo);
 	CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 	
-	var encodedFileStream = new FileStream(encodedByNetFileInfo.FullName, FileMode.Open, FileAccess.Read);
+	using var encodedFileStream = new FileStream(encodedByNetFileInfo.FullName, FileMode.Open, FileAccess.Read);
 	encodedFileStream.Position += 2;
 	var buffer = new byte[encodedByNetFileInfo.Length - 2];
 	_ = encodedFileStream.Read(buffer);
 	Base16384.DecodeToNewFile(new ReadOnlySpan<byte>(buffer), encodedByNetDecodedByNetFileInfo);
 	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
-	
-	encodedFileStream.Dispose();
 }
 // EncodeFromFileToStream/DecodeFromFileToStream(FileInfo,Stream) 测试
 void Test8() {}
@@ -100,25 +92,23 @@ void Test9() {}
 // EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan<byte> data, Span<byte> encodingBuffer) 测试
 void Test10() {}
 // Encode/Decode(ReadOnlySpan<byte> data, byte* bufferPtr) OK
-void Test12() {
-	unsafe {
-		var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
-		var encodedIntPtr = (byte*) Marshal.AllocHGlobal(sourceBytes.Length * 2);
-		var encodedLength = Base16384.Encode(new ReadOnlySpan<byte>(sourceBytes), encodedIntPtr);
-		
-		var encodedBytes = new byte[encodedLength];
-		Marshal.Copy((IntPtr) encodedIntPtr, encodedBytes, 0, encodedLength);
-		//decode
-		var decodedIntPtr = (byte*) Marshal.AllocHGlobal(sourceBytes.Length * 2);
-		var decodedLength = Base16384.Decode(new ReadOnlySpan<byte>(encodedBytes), decodedIntPtr);
+unsafe void Test12() {
+	var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
+	var encodedIntPtr = (byte*) Marshal.AllocHGlobal(sourceBytes.Length * 2);
+	var encodedLength = Base16384.Encode(new ReadOnlySpan<byte>(sourceBytes), encodedIntPtr);
+	
+	var encodedBytes = new byte[encodedLength];
+	Marshal.Copy((IntPtr) encodedIntPtr, encodedBytes, 0, encodedLength);
+	//decode
+	var decodedIntPtr = (byte*) Marshal.AllocHGlobal(sourceBytes.Length * 2);
+	var decodedLength = Base16384.Decode(new ReadOnlySpan<byte>(encodedBytes), decodedIntPtr);
 
-		var decodedBytes = new byte[decodedLength];
-		Marshal.Copy((IntPtr) decodedIntPtr, decodedBytes, 0, decodedLength);
-		var decodedFileStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName);
-		decodedFileStream.Write(decodedBytes);
-		decodedFileStream.Dispose();
-		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
-	}
+	var decodedBytes = new byte[decodedLength];
+	Marshal.Copy((IntPtr) decodedIntPtr, decodedBytes, 0, decodedLength);
+	var decodedFileStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName);
+	decodedFileStream.Write(decodedBytes);
+	decodedFileStream.Dispose();
+	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 }
 // EncodeToUnmanagedMemory/DecodeToUnmanagedMemory OK
 void Test13() {
@@ -136,27 +126,17 @@ void Test14() {
 	var encodedSpan = Base16384.Encode(new ReadOnlySpan<byte>(sourceBytes));
 	var buffer = new ReadOnlySpan<byte>(new byte[encodedSpan.Length * 2]);
 	var decodedLength = Base16384.Decode(encodedSpan, buffer);
-	var decodedStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName);
+	using var decodedStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName);
 	decodedStream.Write(buffer.ToArray(), 0 , decodedLength);
-	decodedStream.Dispose();
 	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 }
 
 
-void CompareFile(FileInfo info1, FileInfo info2, string tips = "") {
+void CompareFile(FileSystemInfo info1, FileSystemInfo info2, string tips = "") {
 	var bytes1 = File.ReadAllBytes(info1.FullName);
 	var bytes2 = File.ReadAllBytes(info2.FullName);
-	if (bytes1.Length != bytes2.Length) {
-		Console.WriteLine($"{tips}两个文件大小不同");
-		return;
-	}
-	var i = 0;
-	while (i < bytes1.Length) {
-		if (bytes1[i] != bytes2[i]) {
-			Console.WriteLine($"{tips}两个文件内容不同");
-			return;
-		}
-		i++;
+	if (!bytes1.SequenceEqual(bytes2)) {
+		Console.WriteLine($"{tips}两个文件不同");
 	}
 	Console.WriteLine($"{tips}两个文件相同");
 }
