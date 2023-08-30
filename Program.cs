@@ -10,7 +10,7 @@ FileInfo encodedByCDecodedByNetFileInfo = new($"{encodedByCFileInfo.FullName}.de
 FileInfo encodedByNetDecodedByCFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
 FileInfo encodedByNetDecodedByNetFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
 
-Test12();
+Test4();
 
 
 return;
@@ -46,8 +46,19 @@ void Test3() {
 	Console.WriteLine(reader.ReadToEnd());
 	reader.Dispose();
 }
-// EncodeToNewFile/DecodeToNewFile(Stream, FileInfo) 测试
-void Test4() { }
+// EncodeToNewFile/DecodeToNewFile(Stream, FileInfo) 测试 ???
+void Test4() {
+	var sourceStream = File.OpenRead(sourceFileInfo.FullName);
+	Base16384.EncodeToNewFile(sourceStream, encodedByNetFileInfo);
+	sourceStream.Dispose();
+	CompareFile(encodedByCFileInfo, encodedByNetFileInfo, "encoded: ");
+	
+	var encodedStream = File.OpenRead(encodedByNetFileInfo.FullName);
+	encodedStream.Position += 2;
+	Base16384.DecodeToNewFile(encodedStream, encodedByNetDecodedByNetFileInfo);
+	encodedStream.Dispose();
+	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo, "decoded: ");
+}
 // EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试
 void Test5() {
 	using (var sourceFileStream = new FileStream(sourceFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
