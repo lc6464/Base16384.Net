@@ -10,7 +10,7 @@ FileInfo encodedByCDecodedByNetFileInfo = new($"{encodedByCFileInfo.FullName}.de
 FileInfo encodedByNetDecodedByCFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
 FileInfo encodedByNetDecodedByNetFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
 
-Test13();
+Test12();
 
 
 return;
@@ -40,7 +40,7 @@ void Test2() {
 	outFileStream.Write(bytes);
 	outFileStream.Dispose();
 }
-// ConvertFromUtf16BEBytesToString测试ok
+// ConvertFromUtf16BEBytesToString 测试ok
 void Test3() {
 	var reader = new StreamReader(new FileStream(Path.Combine(workPath, "Test3.txt"), FileMode.Open, FileAccess.Read), Encoding.BigEndianUnicode);
 	Console.WriteLine(reader.ReadToEnd());
@@ -83,29 +83,52 @@ void Test7() {
 }
 // EncodeFromFileToStream/DecodeFromFileToStream(FileInfo,Stream) 测试
 void Test8() {}
-// EncodeFromFileToNewFile/DecodeFromFileToNewFile(FileInfo,FileInfo) 用不着测试
+// EncodeFromFileToNewFile/DecodeFromFileToNewFile(FileInfo,FileInfo) 用不着测试,因为Console项目用到了这两个方法
 void Test9() {}
 // EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试
 // EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan<byte> data, Span<byte> encodingBuffer) 测试
 void Test10() {}
-// Encode/Decode(ReadOnlySpan<byte> data, byte* bufferPtr) safe上下文
-void Test12() {}
+// Encode/Decode(ReadOnlySpan<byte> data, byte* bufferPtr) OK
+void Test12() {
+	unsafe {
+		var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
+		var encodedIntPtr = (byte*) Marshal.AllocHGlobal(sourceBytes.Length * 2);
+		var encodedLength = Base16384.Encode(new ReadOnlySpan<byte>(sourceBytes), encodedIntPtr);
+		
+		var encodedBytes = new byte[encodedLength];
+		Marshal.Copy((IntPtr) encodedIntPtr, encodedBytes, 0, encodedLength);
+		//decode
+		var decodedIntPtr = (byte*) Marshal.AllocHGlobal(sourceBytes.Length * 2);
+		var decodedLength = Base16384.Decode(new ReadOnlySpan<byte>(encodedBytes), decodedIntPtr);
+
+		var decodedBytes = new byte[decodedLength];
+		Marshal.Copy((IntPtr) decodedIntPtr, decodedBytes, 0, decodedLength);
+		var decodedFileStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName);
+		decodedFileStream.Write(decodedBytes);
+		decodedFileStream.Dispose();
+		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
+	}
+}
 // EncodeToUnmanagedMemory/DecodeToUnmanagedMemory OK
 void Test13() {
 	var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
-	// 你这unsafe是不是有点假？@lc6464
+	// unsafe了个寂寞
 	var encodeUnmanagedBytes = Base16384.EncodeToUnmanagedMemory(new ReadOnlySpan<byte>(sourceBytes));
 	var decodeUnmanagedBytes = Base16384.DecodeToUnmanagedMemory(encodeUnmanagedBytes);
 	File.WriteAllBytes(encodedByNetDecodedByNetFileInfo.FullName, decodeUnmanagedBytes.ToArray());
 	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 }
-// Decode(ReadOnlySpan<byte> data, ReadOnlySpan<byte> buffer) 你这decode什么东西？
-// Encode(ReadOnlySpan<byte> data)
+// Decode(ReadOnlySpan<byte> data, ReadOnlySpan<byte> buffer) OK
+// Encode(ReadOnlySpan<byte> data) OK
 void Test14() {
 	var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
 	var encodedSpan = Base16384.Encode(new ReadOnlySpan<byte>(sourceBytes));
-	var decodedSpan = Base16384.Decode(encodedSpan, new ReadOnlySpan<byte>(new byte[encodedSpan.Length * 2]));
-	
+	var buffer = new ReadOnlySpan<byte>(new byte[encodedSpan.Length * 2]);
+	var decodedLength = Base16384.Decode(encodedSpan, buffer);
+	var decodedStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName);
+	decodedStream.Write(buffer.ToArray(), 0 , decodedLength);
+	decodedStream.Dispose();
+	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 }
 
 

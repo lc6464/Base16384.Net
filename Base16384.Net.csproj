@@ -6,6 +6,9 @@
 		<Nullable>enable</Nullable>
 		<Version>1.0.1.0</Version>
 	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 	<ItemGroup>
 		<!--<PackageReference Include="LC6464.Base16384" Version="1.1.0" />-->
 		<Reference Include="LC6464.Base16384">
