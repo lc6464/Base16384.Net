@@ -115,10 +115,24 @@ internal static class Testing {
 	}
 	// EncodeFromFileToStream/DecodeFromFileToStream(FileInfo,Stream) 测试
 	public static void Test8() {
-		
+		var encodedStream = File.OpenWrite(encodedByNetFileInfo.FullName);
+		Base16384.EncodeFromFileToStream(sourceFileInfo, encodedStream);
+		encodedStream.Dispose();
+		CompareEncodedFile();
+
+		var decodedStream = File.OpenWrite(encodedByNetDecodedByCFileInfo.FullName);
+		Base16384.DecodeFromFileToStream(encodedByNetFileInfo, decodedStream);
+		decodedStream.Dispose();
+		CompareDecodedFile();
 	}
-	// EncodeFromFileToNewFile/DecodeFromFileToNewFile(FileInfo,FileInfo) 测试
-	public static void Test9() { } 
+	// EncodeFromFileToNewFile/DecodeFromFileToNewFile(FileInfo,FileInfo) 测试 pass
+	public static void Test9() {
+		Base16384.EncodeFromFileToNewFile(sourceFileInfo, encodedByNetFileInfo);
+		CompareEncodedFile();
+
+		Base16384.DecodeFromFileToNewFile(encodedByNetFileInfo, encodedByNetDecodedByNetFileInfo);
+		CompareDecodedFile();
+	} 
 	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试
     // EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan<byte> data, Span<byte> encodingBuffer) 测试
 	public static void Test10() { }
@@ -163,7 +177,8 @@ internal static class Testing {
 		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 	}
 
-	private static void CompareEncodedFile() => CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
+	private static void CompareEncodedFile() =>
+		CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 
 	private static void CompareDecodedFile() =>
 		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
