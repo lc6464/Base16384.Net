@@ -1,7 +1,8 @@
 ﻿using System.Text;
 using System.Diagnostics;
+using System.Net;
 
-Testing.Debug();
+Testing.Test7();
 
 
 internal static class Testing {
@@ -52,20 +53,20 @@ internal static class Testing {
 	}
 	// EncodeToNewFile/DecodeToNewFile(Stream, FileInfo) 测试 pass
 	public static void Test4() { 
-		using var sourceFS = sourceFileInfo.OpenRead();
-		Base16384.EncodeToNewFile(sourceFS, encodedByNetFileInfo);
+		using var sourceFileStream = sourceFileInfo.OpenRead();
+		Base16384.EncodeToNewFile(sourceFileStream, encodedByNetFileInfo);
 		CompareFile(encodedByCFileInfo, encodedByNetFileInfo, "Encode");
 
-		using var encodedFS = encodedByNetFileInfo.OpenRead();
-		encodedFS.Position += 2;
-		Base16384.DecodeToNewFile(encodedFS, encodedByNetDecodedByNetFileInfo);
+		using var encodedFileStream = encodedByNetFileInfo.OpenRead();
+		encodedFileStream.Position += 2;
+		Base16384.DecodeToNewFile(encodedFileStream, encodedByNetDecodedByNetFileInfo);
 		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo, "Decode");
 	}
-	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试 ???
+	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试 未通过
 	public static void Test5() { 
 		using var sourceFileStream = sourceFileInfo.OpenRead();
 		var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(sourceFileStream);
-		encodedMemoryStream.Position = 0;
+		 encodedMemoryStream.Position = 0;
 		using (var encodeByNetFileStream = encodedByNetFileInfo.Create()) {
 			encodedMemoryStream.CopyTo(encodeByNetFileStream);
 		}
@@ -81,9 +82,25 @@ internal static class Testing {
 		}
 		CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 	}
-	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试
-	public static void Test6() { }
-	// EncodeToNewFile/DecodeToNewFile(ReadOnlySpan, FileInfo) 测试 ???
+	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试 未通过
+	public static void Test6() {
+		var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
+		using var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(new ReadOnlySpan<byte>(sourceBytes));
+		using (var encodeFileStream = File.OpenWrite(encodedByNetFileInfo.FullName))
+		{
+			encodedMemoryStream.CopyTo(encodeFileStream);
+		}
+		CompareEncodedFile();
+		
+		var decodedBytes = File.ReadAllBytes(encodedByNetFileInfo.FullName);
+		using var decodedMemoryStream = Base16384.DecodeToNewMemorySteam(new ReadOnlySpan<byte>(decodedBytes, 1, decodedBytes.Length -2));
+		using (var decodedFileStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName)) {
+			decodedMemoryStream.CopyTo(decodedFileStream);
+		}
+		CompareDecodedFile();
+
+	}
+	// EncodeToNewFile/DecodeToNewFile(ReadOnlySpan, FileInfo) 测试 未通过
 	public static void Test7() { 
 		var sourceBytes = new ReadOnlySpan<byte>(File.ReadAllBytes(sourceFileInfo.FullName));
 		Base16384.EncodeToNewFile(sourceBytes, encodedByNetFileInfo);
@@ -97,7 +114,9 @@ internal static class Testing {
 		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 	}
 	// EncodeFromFileToStream/DecodeFromFileToStream(FileInfo,Stream) 测试
-	public static void Test8() { }
+	public static void Test8() {
+		
+	}
 	// EncodeFromFileToNewFile/DecodeFromFileToNewFile(FileInfo,FileInfo) 测试
 	public static void Test9() { } 
 	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试
@@ -143,7 +162,16 @@ internal static class Testing {
 		decodedStream.Write(buffer.ToArray(), 0, decodedLength);
 		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 	}
-	public static void CompareFile(FileInfo info1, FileInfo info2, string tips = "") {
+
+	private static void CompareEncodedFile() => CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
+
+	private static void CompareDecodedFile() =>
+		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
+
+	private static void CompareNetSourceAndDecoded() =>
+		CompareFile(sourceFileInfo, encodedByNetDecodedByNetFileInfo);
+	
+	private static void CompareFile(FileInfo info1, FileInfo info2, string tips = "") {
 		if (info1.Length != info2.Length) {
 			Console.WriteLine($"{tips}：啊？");
 			return;
