@@ -10,16 +10,13 @@ FileInfo encodedByCDecodedByNetFileInfo = new($"{encodedByCFileInfo.FullName}.de
 FileInfo encodedByNetDecodedByCFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
 FileInfo encodedByNetDecodedByNetFileInfo = new($"{encodedByNetFileInfo.FullName}.decodedByNet");
 
-Debug();
+Test13();
 
 
 return;
 
 void Debug() {
-	using (var encodedByCFileStream = new FileStream(encodedByCFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
-		Base16384.DecodeToNewFile(encodedByCFileStream, encodedByCDecodedByNetFileInfo);
-		CompareFile(encodedByCDecodedByCFileInfo, encodedByCDecodedByNetFileInfo, "decoded: ");
-	}
+	
 }
 // ConvertFromUtf16BEBytesToUtf8Bytes测试ok
 void Test1() {
@@ -49,17 +46,68 @@ void Test3() {
 	Console.WriteLine(reader.ReadToEnd());
 	reader.Dispose();
 }
-// EncodeToNewFile/DecodeToNewFile(Stream, FileInfo) 测试 建议LC测试
-void Test4() {
+// EncodeToNewFile/DecodeToNewFile(Stream, FileInfo) 测试
+void Test4() { }
+// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试
+void Test5() {
 	using (var sourceFileStream = new FileStream(sourceFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
-		Base16384.EncodeToNewFile(sourceFileStream, encodedByNetFileInfo);
-		CompareFile(encodedByCFileInfo, encodedByNetFileInfo, "encoded: ");
+		sourceFileStream.Position += 2;
+		var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(sourceFileStream);
+		File.WriteAllBytes(encodedByNetFileInfo.FullName, encodedMemoryStream.ToArray());
+		CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 	}
+
 	using (var encodedByNetFileStream = new FileStream(encodedByNetFileInfo.FullName, FileMode.Open, FileAccess.Read)) {
-		Base16384.DecodeToNewFile(encodedByNetFileStream, encodedByNetDecodedByNetFileInfo);
-		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo, "decoded: ");
+		encodedByNetFileStream.Position += 2;
+		var decodedMemoryStream = Base16384.EncodeToNewMemoryStream(encodedByNetFileStream);
+		File.WriteAllBytes(encodedByNetDecodedByNetFileInfo.FullName, decodedMemoryStream.ToArray());
+		CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 	}
 }
+// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试
+void Test6() { }
+// EncodeToNewFile/DecodeToNewFile(ReadOnlySpan, FileInfo) 测试 ???
+void Test7() {
+	var sourceBytes = new ReadOnlySpan<byte>(File.ReadAllBytes(sourceFileInfo.FullName));
+	Base16384.EncodeToNewFile(sourceBytes, encodedByNetFileInfo);
+	CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
+	
+	var encodedFileStream = new FileStream(encodedByNetFileInfo.FullName, FileMode.Open, FileAccess.Read);
+	encodedFileStream.Position += 2;
+	var buffer = new byte[encodedByNetFileInfo.Length - 2];
+	_ = encodedFileStream.Read(buffer);
+	Base16384.DecodeToNewFile(new ReadOnlySpan<byte>(buffer), encodedByNetDecodedByNetFileInfo);
+	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
+	
+	encodedFileStream.Dispose();
+}
+// EncodeFromFileToStream/DecodeFromFileToStream(FileInfo,Stream) 测试
+void Test8() {}
+// EncodeFromFileToNewFile/DecodeFromFileToNewFile(FileInfo,FileInfo) 用不着测试
+void Test9() {}
+// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试
+// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan<byte> data, Span<byte> encodingBuffer) 测试
+void Test10() {}
+// Encode/Decode(ReadOnlySpan<byte> data, byte* bufferPtr) safe上下文
+void Test12() {}
+// EncodeToUnmanagedMemory/DecodeToUnmanagedMemory OK
+void Test13() {
+	var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
+	// 你这unsafe是不是有点假？@lc6464
+	var encodeUnmanagedBytes = Base16384.EncodeToUnmanagedMemory(new ReadOnlySpan<byte>(sourceBytes));
+	var decodeUnmanagedBytes = Base16384.DecodeToUnmanagedMemory(encodeUnmanagedBytes);
+	File.WriteAllBytes(encodedByNetDecodedByNetFileInfo.FullName, decodeUnmanagedBytes.ToArray());
+	CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
+}
+// Decode(ReadOnlySpan<byte> data, ReadOnlySpan<byte> buffer) 你这decode什么东西？
+// Encode(ReadOnlySpan<byte> data)
+void Test14() {
+	var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
+	var encodedSpan = Base16384.Encode(new ReadOnlySpan<byte>(sourceBytes));
+	var decodedSpan = Base16384.Decode(encodedSpan, new ReadOnlySpan<byte>(new byte[encodedSpan.Length * 2]));
+	
+}
+
 
 void CompareFile(FileInfo info1, FileInfo info2, string tips = "") {
 	var bytes1 = File.ReadAllBytes(info1.FullName);
