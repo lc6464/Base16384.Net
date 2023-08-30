@@ -62,7 +62,7 @@ internal static class Testing {
 		Base16384.DecodeToNewFile(encodedFileStream, encodedByNetDecodedByNetFileInfo);
 		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo, "Decode");
 	}
-	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试 未通过
+	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream) 测试 fail
 	public static void Test5() { 
 		using var sourceFileStream = sourceFileInfo.OpenRead();
 		var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(sourceFileStream);
@@ -82,7 +82,7 @@ internal static class Testing {
 		}
 		CompareFile(encodedByCFileInfo, encodedByNetFileInfo);
 	}
-	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试 未通过
+	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试 fail
 	public static void Test6() {
 		var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
 		using var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(new ReadOnlySpan<byte>(sourceBytes));
@@ -100,7 +100,7 @@ internal static class Testing {
 		CompareDecodedFile();
 
 	}
-	// EncodeToNewFile/DecodeToNewFile(ReadOnlySpan, FileInfo) 测试 未通过
+	// EncodeToNewFile/DecodeToNewFile(ReadOnlySpan, FileInfo) 测试 fail
 	public static void Test7() { 
 		var sourceBytes = new ReadOnlySpan<byte>(File.ReadAllBytes(sourceFileInfo.FullName));
 		Base16384.EncodeToNewFile(sourceBytes, encodedByNetFileInfo);
@@ -113,9 +113,10 @@ internal static class Testing {
 		Base16384.DecodeToNewFile(new ReadOnlySpan<byte>(buffer), encodedByNetDecodedByNetFileInfo);
 		CompareFile(encodedByCDecodedByCFileInfo, encodedByNetDecodedByNetFileInfo);
 	}
-	// EncodeFromFileToStream/DecodeFromFileToStream(FileInfo,Stream) 测试
+	// EncodeFromFileToStream/DecodeFromFileToStream(FileInfo,Stream) 测试 pass
 	public static void Test8() {
 		var encodedStream = File.OpenWrite(encodedByNetFileInfo.FullName);
+		encodedStream.Write(Base16384.Utf16BEPreamble);
 		Base16384.EncodeFromFileToStream(sourceFileInfo, encodedStream);
 		encodedStream.Dispose();
 		CompareEncodedFile();
