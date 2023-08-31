@@ -123,7 +123,7 @@ internal static class Testing {
 		encodedStream.Dispose();
 		CompareEncodedFile();
 
-		var decodedStream = File.OpenWrite(encodedByNetDecodedByCFileInfo.FullName);
+		var decodedStream = File.OpenWrite(encodedByNetDecodedByNetFileInfo.FullName);
 		Base16384.DecodeFromFileToStream(encodedByNetFileInfo, decodedStream);
 		decodedStream.Dispose();
 		CompareDecodedFile();
