@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 
-Testing.Test11();
+Testing.Test6();
 
 
 internal static class Testing {
@@ -83,7 +83,7 @@ internal static class Testing {
 		}
 		CompareDecodedFile();
 	}
-	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试 fail
+	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan) 测试 pass
 	public static void Test6() {
 		var sourceBytes = File.ReadAllBytes(sourceFileInfo.FullName);
 		using var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(new ReadOnlySpan<byte>(sourceBytes));
@@ -102,8 +102,8 @@ internal static class Testing {
 		CompareDecodedFile();
 
 	}
-	// EncodeToNewFile/DecodeToNewFile(ReadOnlySpan, FileInfo) 测试 fail
-	public static void Test7() { 
+	// EncodeToNewFile/DecodeToNewFile(ReadOnlySpan, FileInfo) 测试 pass
+	public static void Test7() {
 		var sourceBytes = new ReadOnlySpan<byte>(File.ReadAllBytes(sourceFileInfo.FullName));
 		Base16384.EncodeToNewFile(sourceBytes, encodedByNetFileInfo);
 		CompareEncodedFile();
@@ -136,7 +136,7 @@ internal static class Testing {
 		Base16384.DecodeFromFileToNewFile(encodedByNetFileInfo, encodedByNetDecodedByNetFileInfo);
 		CompareDecodedFile();
 	} 
-	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试 pass
+	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试 fail
     public static void Test10() {
 	    using var sourceFileStream = sourceFileInfo.OpenRead();
 	    using var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(
@@ -153,11 +153,11 @@ internal static class Testing {
 		    encodedReadFileStream,
 		    new Span<byte>(new byte[encodedByNetFileInfo.Length]),
 		    new Span<byte>(new byte[encodedByNetFileInfo.Length * 2]));
-	    var decodedStream = encodedByNetDecodedByNetFileInfo.OpenWrite();
+	    using var decodedStream = encodedByNetDecodedByNetFileInfo.OpenWrite();
 		decodedMemoryStream.CopyTo(decodedStream);
 	    CompareDecodedFile();
     }
-    // EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan<byte> data, Span<byte> encodingBuffer) 测试 fail
+    // EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan<byte> data, Span<byte> encodingBuffer) 测试 pass
     public static void Test11() {
 	    var sourceSpan = new Span<byte>(File.ReadAllBytes(sourceFileInfo.FullName));
 	    using var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(sourceSpan, 
