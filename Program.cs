@@ -136,7 +136,7 @@ internal static class Testing {
 		Base16384.DecodeFromFileToNewFile(encodedByNetFileInfo, encodedByNetDecodedByNetFileInfo);
 		CompareDecodedFile();
 	} 
-	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试 fail
+	// EncodeToNewMemoryStream/DecodeToNewMemoryStream(Stream stream, Span<byte> buffer, Span<byte> encodingBuffer) 测试 pass
     public static void Test10() {
 	    using var sourceFileStream = sourceFileInfo.OpenRead();
 	    using var encodedMemoryStream = Base16384.EncodeToNewMemoryStream(
@@ -144,17 +144,23 @@ internal static class Testing {
 		    new Span<byte>(new byte[sourceFileInfo.Length]),
 		    new Span<byte>(new byte[sourceFileInfo.Length * 2]));
 	    using var encodedWriteFileStream = encodedByNetFileInfo.OpenWrite();
+	    encodedWriteFileStream.Write(Base16384.Utf16BEPreamble);
+	    encodedMemoryStream.Position = 0;
 		encodedMemoryStream.CopyTo(encodedWriteFileStream);
 	    encodedWriteFileStream.Dispose();
 	    CompareEncodedFile();
 
 	    using var encodedReadFileStream = encodedByNetFileInfo.OpenRead();
+	    encodedReadFileStream.Position += 2;
+	    // ???
 	    using var decodedMemoryStream = Base16384.DecodeToNewMemorySteam(
 		    encodedReadFileStream,
-		    new Span<byte>(new byte[encodedByNetFileInfo.Length]),
+		    new Span<byte>(new byte[encodedByNetFileInfo.Length * 2]),
 		    new Span<byte>(new byte[encodedByNetFileInfo.Length * 2]));
 	    using var decodedStream = encodedByNetDecodedByNetFileInfo.OpenWrite();
+	    decodedMemoryStream.Position = 0;
 		decodedMemoryStream.CopyTo(decodedStream);
+		decodedStream.Dispose();
 	    CompareDecodedFile();
     }
     // EncodeToNewMemoryStream/DecodeToNewMemoryStream(ReadOnlySpan<byte> data, Span<byte> encodingBuffer) 测试 pass
