@@ -1,21 +1,17 @@
 ﻿if (args.Length <= 3) {
 	switch (args[0]) {
-		case "-e":
-			if (args.Length < 2) {
-				Console.WriteLine("未指定文件或目录");
-				return 5;
-			}
-			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : Path.Combine(args[1], "Result"), true) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.Encoded", true);
-		case "-d":
-			if (args.Length < 2) {
-				Console.WriteLine("未指定文件或目录");
-				return 5;
-			}
-			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : Path.Combine(args[1], "Result"), true) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.Encoded", false);
 		case "e":
-			return EncodeOrDecodeDirectory("Source", "Result", true);
+			if (args.Length < 2) {
+				Console.WriteLine("未指定文件或目录");
+				return 5;
+			}
+			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : Path.Combine(args[1], "out"), true) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.encoded", true);
 		case "d":
-			return EncodeOrDecodeDirectory("Encoded", "Result", false);
+			if (args.Length < 2) {
+				Console.WriteLine("未指定文件或目录");
+				return 5;
+			}
+			return Directory.Exists(args[1]) ? EncodeOrDecodeDirectory(args[1], args.Length == 3 ? args[2] : Path.Combine(args[1], "out"), false) : EncodeOrDecodeFromFileToFile(args[1], args.Length == 3 ? args[2] : $"{args[1]}.encoded", false);
 		default:
 			Console.WriteLine("Unknown argument.");
 			return 4;
@@ -41,7 +37,7 @@ int EncodeOrDecodeDirectory(string inputPath, string outputPath, bool mode) {
 	}
 
 	foreach (var file in files) {
-		FileInfo outFile = new(Path.Combine(outputPath, $"{file.Name}.{(mode ? "En" : "De")}coded"));
+		FileInfo outFile = new(Path.Combine(outputPath, $"{file.Name}.{(mode ? "en" : "de")}coded"));
 		_ = mode ? Base16384.EncodeFromFileToNewFile(file, outFile) : Base16384.DecodeFromFileToNewFile(file, outFile);
 		Console.WriteLine($"{file.Name} - Finished.");
 	}
@@ -50,17 +46,25 @@ int EncodeOrDecodeDirectory(string inputPath, string outputPath, bool mode) {
 }
 // mode: true为encode，false为decode
 int EncodeOrDecodeFromFileToFile(string inputPath, string outputPath, bool mode) {
-	if (!File.Exists(inputPath)) {
+	const string minus = "-";
+	bool inputIsStd = inputPath == minus;
+	bool outputIsStd = outputPath == minus;
+	if (!File.Exists(inputPath) && !inputIsStd) {
 		Console.WriteLine($"{inputPath} 文件不存在");
 		return 1;
 	}
-	FileInfo file = new(inputPath);
-	FileInfo outFile = new(outputPath);
-	_ = mode ? Base16384.EncodeFromFileToNewFile(file, outFile) : Base16384.DecodeFromFileToNewFile(file, outFile);
-	Console.WriteLine($"{file.Name} - Finished.");
+	using var input = inputIsStd ? Console.OpenStandardInput() : new FileInfo(inputPath).OpenRead();
+	using var output = outputIsStd ? Console.OpenStandardOutput() : new FileInfo(outputPath).OpenWrite();
+	if (!outputIsStd) {
+		output.Write(Base16384.Utf16BEPreamble);
+	}
+	_ = mode ? Base16384.EncodeToStream(input, output) : Base16384.DecodeToStream(input, output);
+	if (!outputIsStd) {
+		Console.WriteLine($"{outputPath} - Finished.");
+	}
 	return 0;
 }
-bool DirectoryExistsButFileNorCreate(string path) {
+bool DirectoryExistsButFileNorCreate(string path) {  
 	if (Directory.Exists(path)) {
 		return false;
 	}
