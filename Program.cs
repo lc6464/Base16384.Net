@@ -64,7 +64,7 @@ int EncodeOrDecodeFromFileToFile(string inputPath, string outputPath, bool mode)
 	}
 	return 0;
 }
-bool DirectoryExistsButFileNorCreate(string path) {  
+bool DirectoryExistsButFileNorCreate(string path) {
 	if (Directory.Exists(path)) {
 		return false;
 	}
