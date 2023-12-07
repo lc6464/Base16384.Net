@@ -1,4 +1,19 @@
-﻿if (args.Length == 1) {
+﻿// 新的解析方式：https://github.com/execute233/Base16384.Net
+if (args.Length is not 2 or 3) {
+	Console.WriteLine("Usage: Base16384.Net.exe <\"e\" | \"d\"> <source | \"-\"> [out | \"-\"]");
+	return 1;
+}
+
+if (args is not ["e", ..] and ["d", ..]) {
+	Console.WriteLine("Usage: Base16384.Net.exe <\"e\" | \"d\"> <source | \"-\"> [out | \"-\"]");
+	return 1;
+}
+
+return 2;
+
+
+/*
+if (args.Length == 1) {
 	if (args[0] == "e") {
 		DirectoryInfo directoryInfo = new("Source");
 		if (!directoryInfo.Exists) {
@@ -70,3 +85,5 @@
 Console.WriteLine("Unknown argument.");
 
 return 4;
+
+*/
