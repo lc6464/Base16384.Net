@@ -1,15 +1,41 @@
 ﻿// 新的解析方式：https://github.com/execute233/Base16384.Net
-if (args.Length is not 2 or 3) {
+
+if (args.Length is not 2 and not 3 || args is not ["e", ..] and not ["d", ..]) {
 	Console.WriteLine("Usage: Base16384.Net.exe <\"e\" | \"d\"> <source | \"-\"> [out | \"-\"]");
 	return 1;
 }
 
-if (args is not ["e", ..] and ["d", ..]) {
-	Console.WriteLine("Usage: Base16384.Net.exe <\"e\" | \"d\"> <source | \"-\"> [out | \"-\"]");
-	return 1;
+if (args[0] == "e") {
+	// Encode mode
+	if (args[1] == "-") {
+		// Read from stdin
+		using var stdin = Console.OpenStandardInput();
+		if (args.Length == 2 || args[2] == "-") {
+			// Write to stdout
+			using var stdout = Console.OpenStandardOutput();
+			Base16384.EncodeToStream(stdin, stdout);
+		} else {
+			// Write to file
+			Base16384.EncodeToNewFile(stdin, new(args[2]));
+		}
+	} else {
+		// Read from file
+		if (args is [.., "-"]) {
+			// Write to stdout
+			using var stdout = Console.OpenStandardOutput();
+			Base16384.EncodeFromFileToStream(new(args[1]), stdout);
+		} else if (args.Length == 2) {
+			// Write to .decoded file
+			Base16384.EncodeFromFileToNewFile(new(args[1]), new($"{args[1]}.encoded"));
+		} else {
+			// Write to file
+			Base16384.EncodeFromFileToNewFile(new(args[1]), new(args[2]));
+		}
+	}
 }
 
-return 2;
+
+return 0;
 
 
 /*
