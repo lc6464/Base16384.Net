@@ -32,9 +32,35 @@ if (args[0] == "e") {
 			Base16384.EncodeFromFileToNewFile(new(args[1]), new(args[2]));
 		}
 	}
+} else {
+	if (args[1] == "-") {
+		// Read from stdin
+		using var stdin = Console.OpenStandardInput();
+		if (args.Length == 2 || args[2] == "-") {
+			// Write to stdout
+			using var stdout = Console.OpenStandardOutput();
+			Base16384.DecodeToStream(stdin, stdout);
+		} else {
+			// Write to file
+			Base16384.DecodeToNewFile(stdin, new(args[2]));
+		}
+	} else {
+		// Read from file
+		if (args is [.., "-"]) {
+			// Write to stdout
+			using var stdout = Console.OpenStandardOutput();
+			Base16384.DecodeFromFileToStream(new(args[1]), stdout);
+		} else if (args.Length == 2) {
+			// Write to .decoded file
+			Base16384.DecodeFromFileToNewFile(new(args[1]), new($"{args[1]}.decoded"));
+		} else {
+			// Write to file
+			Base16384.DecodeFromFileToNewFile(new(args[1]), new(args[2]));
+		}
+	}
 }
 
-// 差了个编码文件夹和解码文件/文件夹
+// 差了个遍历文件夹编解码
 
 
 return 0;
