@@ -22,13 +22,33 @@ if (args[0] == "e") {
 		// Read from file
 		if (args is [.., "-"]) {
 			// Write to stdout
+			if (!File.Exists(args[1])) {
+				Console.WriteLine("Source file not found.");
+				return 2;
+			}
 			using var stdout = Console.OpenStandardOutput();
 			Base16384.EncodeFromFileToStream(new(args[1]), stdout);
 		} else if (args.Length == 2) {
 			// Write to .decoded file
+			if (!File.Exists(args[1])) {
+				if (Directory.Exists(args[1])) {
+					// 此处应该遍历文件夹
+					return 0;
+				}
+				Console.WriteLine("Source file not found.");
+				return 2;
+			}
 			Base16384.EncodeFromFileToNewFile(new(args[1]), new($"{args[1]}.encoded"));
 		} else {
 			// Write to file
+			if (!File.Exists(args[1])) {
+				if (Directory.Exists(args[1])) {
+					// 此处应该遍历文件夹
+					return 0;
+				}
+				Console.WriteLine("Source file not found.");
+				return 2;
+			}
 			Base16384.EncodeFromFileToNewFile(new(args[1]), new(args[2]));
 		}
 	}
@@ -48,13 +68,33 @@ if (args[0] == "e") {
 		// Read from file
 		if (args is [.., "-"]) {
 			// Write to stdout
+			if (!File.Exists(args[1])) {
+				Console.WriteLine("Source file not found.");
+				return 2;
+			}
 			using var stdout = Console.OpenStandardOutput();
 			Base16384.DecodeFromFileToStream(new(args[1]), stdout);
 		} else if (args.Length == 2) {
 			// Write to .decoded file
+			if (!File.Exists(args[1])) {
+				if (Directory.Exists(args[1])) {
+					// 此处应该遍历文件夹
+					return 0;
+				}
+				Console.WriteLine("Source file not found.");
+				return 2;
+			}
 			Base16384.DecodeFromFileToNewFile(new(args[1]), new($"{args[1]}.decoded"));
 		} else {
 			// Write to file
+			if (!File.Exists(args[1])) {
+				if (Directory.Exists(args[1])) {
+					// 此处应该遍历文件夹
+					return 0;
+				}
+				Console.WriteLine("Source file not found.");
+				return 2;
+			}
 			Base16384.DecodeFromFileToNewFile(new(args[1]), new(args[2]));
 		}
 	}
