@@ -141,7 +141,7 @@ if (args[0] == "e") {
 			return 3;
 		}
 	} else { // 异常处理和用户提示还没完成
-		// Read from file
+			 // Read from file
 		if (args is [.., "-"]) {
 			// Write to stdout
 			if (!File.Exists(args[1])) {
