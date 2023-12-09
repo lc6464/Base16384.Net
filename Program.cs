@@ -94,22 +94,53 @@ if (args[0] == "e") {
 				Console.WriteLine("Source file not found.");
 				return 2;
 			}
-			Base16384.EncodeFromFileToNewFile(new(args[1]), new(args[2]));
+			Console.Write($"{args[1]} -> {args[2]} ... ");
+			try {
+				Base16384.EncodeFromFileToNewFile(new(args[1]), new(args[2]));
+			} catch {
+				Console.WriteLine("Failed.");
+				return 4;
+			}
+			Console.WriteLine("Done.");
 		}
 	}
 } else {
+	// Decode mode
 	if (args[1] == "-") {
 		// Read from stdin
-		using var stdin = Console.OpenStandardInput();
-		if (args.Length == 2 || args[2] == "-") {
-			// Write to stdout
-			using var stdout = Console.OpenStandardOutput();
-			Base16384.DecodeToStream(stdin, stdout);
-		} else {
-			// Write to file
-			Base16384.DecodeToNewFile(stdin, new(args[2]));
+		try {
+			using var stdin = Console.OpenStandardInput();
+			if (args.Length == 2 || args[2] == "-") {
+				// Write to stdout
+				try {
+					using var stdout = Console.OpenStandardOutput();
+					try {
+						Base16384.DecodeToStream(stdin, stdout);
+					} catch {
+						return 4;
+					}
+				} catch {
+					return 3;
+				}
+			} else {
+				// Write to file
+				FileInfo info = new(args[2]);
+				Console.Write($"<stdin> -> {info.Name} ... ");
+				try {
+					Base16384.DecodeToNewFile(stdin, info);
+				} catch {
+					Console.WriteLine("Failed.");
+					return 4;
+				}
+				Console.WriteLine("Done.");
+			}
+		} catch {
+			if (args.Length != 2 && args[2] != "-") {
+				Console.WriteLine("Can not open stdin.");
+			}
+			return 3;
 		}
-	} else {
+	} else { // 异常处理和用户提示还没完成
 		// Read from file
 		if (args is [.., "-"]) {
 			// Write to stdout
@@ -144,8 +175,6 @@ if (args[0] == "e") {
 		}
 	}
 }
-
-// 差了个遍历文件夹编解码
 
 
 return 0;
