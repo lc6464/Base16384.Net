@@ -16,25 +16,37 @@ if (args[0] == "e") {
 	// Encode mode
 	if (args[1] == "-") {
 		// Read from stdin
-		using var stdin = Console.OpenStandardInput();
-		if (args.Length == 2 || args[2] == "-") {
-			// Write to stdout
-			try {
-				using var stdout = Console.OpenStandardOutput();
+		try {
+			using var stdin = Console.OpenStandardInput();
+			if (args.Length == 2 || args[2] == "-") {
+				// Write to stdout
 				try {
-					Base16384.EncodeToStream(stdin, stdout);
+					using var stdout = Console.OpenStandardOutput();
+					try {
+						Base16384.EncodeToStream(stdin, stdout);
+					} catch {
+						return 4;
+					}
 				} catch {
+					return 3;
+				}
+			} else {
+				// Write to file
+				FileInfo info = new(args[2]);
+				Console.Write($"<stdin> -> {info.Name} ... ");
+				try {
+					Base16384.EncodeToNewFile(stdin, info);
+				} catch {
+					Console.WriteLine("Failed.");
 					return 4;
 				}
-			} catch {
-				return 3;
+				Console.WriteLine("Done.");
 			}
-		} else {
-			// Write to file
-			FileInfo info = new(args[2]);
-			Console.Write($"<stdin> -> {info.Name} ... ");
-			Base16384.EncodeToNewFile(stdin, info);
-			Console.WriteLine("Done.");
+		} catch {
+			if (args.Length != 2 && args[2] != "-") {
+				Console.WriteLine("Can not open stdin.");
+			}
+			return 3;
 		}
 	} else {
 		// Read from file
