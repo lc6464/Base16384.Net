@@ -1,4 +1,11 @@
 ﻿// 新的解析方式：https://github.com/execute233/Base16384.Net
+/*
+错误代码：
+1. 无法解析命令行参数
+2. 无法读取文件（可能是文件不存在）
+3. Standard IO Stream 开启失败
+4. 编解码失败
+*/
 
 if (args.Length is not 2 and not 3 || args is not ["e", ..] and not ["d", ..]) {
 	Console.WriteLine("Usage: Base16384.Net.exe <\"e\" | \"d\"> <source | \"-\"> [out | \"-\"]");
@@ -12,11 +19,22 @@ if (args[0] == "e") {
 		using var stdin = Console.OpenStandardInput();
 		if (args.Length == 2 || args[2] == "-") {
 			// Write to stdout
-			using var stdout = Console.OpenStandardOutput();
-			Base16384.EncodeToStream(stdin, stdout);
+			try {
+				using var stdout = Console.OpenStandardOutput();
+				try {
+					Base16384.EncodeToStream(stdin, stdout);
+				} catch {
+					return 4;
+				}
+			} catch {
+				return 3;
+			}
 		} else {
 			// Write to file
-			Base16384.EncodeToNewFile(stdin, new(args[2]));
+			FileInfo info = new(args[2]);
+			Console.Write($"<stdin> -> {info.Name} ... ");
+			Base16384.EncodeToNewFile(stdin, info);
+			Console.WriteLine("Done.");
 		}
 	} else {
 		// Read from file
