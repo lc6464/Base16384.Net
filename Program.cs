@@ -53,11 +53,18 @@ if (args[0] == "e") {
 		if (args is [.., "-"]) {
 			// Write to stdout
 			if (!File.Exists(args[1])) {
-				Console.WriteLine("Source file not found.");
 				return 2;
 			}
-			using var stdout = Console.OpenStandardOutput();
-			Base16384.EncodeFromFileToStream(new(args[1]), stdout);
+			try {
+				using var stdout = Console.OpenStandardOutput();
+				try {
+					Base16384.EncodeFromFileToStream(new(args[1]), stdout);
+				} catch {
+					return 4;
+				}
+			} catch {
+				return 3;
+			}
 		} else if (args.Length == 2) {
 			// Write to .decoded file
 			if (!File.Exists(args[1])) {
@@ -68,7 +75,15 @@ if (args[0] == "e") {
 				Console.WriteLine("Source file not found.");
 				return 2;
 			}
-			Base16384.EncodeFromFileToNewFile(new(args[1]), new($"{args[1]}.encoded"));
+			FileInfo info = new(args[1]);
+			Console.Write($"{info.Name} -> {info.Name}.encoded ... ");
+			try {
+				Base16384.EncodeFromFileToNewFile(info, new($"{args[1]}.encoded"));
+			} catch {
+				Console.WriteLine("Failed.");
+				return 4;
+			}
+			Console.WriteLine("Done.");
 		} else {
 			// Write to file
 			if (!File.Exists(args[1])) {
