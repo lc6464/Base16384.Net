@@ -94,9 +94,11 @@ if (args[0] == "e") {
 				Console.WriteLine("Source file not found.");
 				return 2;
 			}
-			Console.Write($"{args[1]} -> {args[2]} ... ");
+			FileInfo info1 = new(args[1]),
+				info2 = new(args[2]);
+			Console.Write($"{info1.Name} -> {info2.Name} ... ");
 			try {
-				Base16384.EncodeFromFileToNewFile(new(args[1]), new(args[2]));
+				Base16384.EncodeFromFileToNewFile(info1, info2);
 			} catch {
 				Console.WriteLine("Failed.");
 				return 4;
@@ -140,7 +142,7 @@ if (args[0] == "e") {
 			}
 			return 3;
 		}
-	} else { // 异常处理和用户提示还没完成
+	} else {
 		// Read from file
 		if (args is [.., "-"]) {
 			// Write to stdout
@@ -148,8 +150,16 @@ if (args[0] == "e") {
 				Console.WriteLine("Source file not found.");
 				return 2;
 			}
-			using var stdout = Console.OpenStandardOutput();
-			Base16384.DecodeFromFileToStream(new(args[1]), stdout);
+			try {
+				using var stdout = Console.OpenStandardOutput();
+				try {
+					Base16384.DecodeFromFileToStream(new(args[1]), stdout);
+				} catch {
+					return 4;
+				}
+			} catch {
+				return 3;
+			}
 		} else if (args.Length == 2) {
 			// Write to .decoded file
 			if (!File.Exists(args[1])) {
@@ -160,7 +170,15 @@ if (args[0] == "e") {
 				Console.WriteLine("Source file not found.");
 				return 2;
 			}
-			Base16384.DecodeFromFileToNewFile(new(args[1]), new($"{args[1]}.decoded"));
+			FileInfo info = new(args[1]);
+			Console.Write($"{info.Name} -> {info.Name}.decoded ... ");
+			try {
+				Base16384.DecodeFromFileToNewFile(info, new($"{args[1]}.decoded"));
+			} catch {
+				Console.WriteLine("Failed.");
+				return 4;
+			}
+			Console.WriteLine("Done.");
 		} else {
 			// Write to file
 			if (!File.Exists(args[1])) {
