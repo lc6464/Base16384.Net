@@ -16,4 +16,16 @@ public static class Helpers {
 		}
 		return 0;
 	}
+
+	public static int WriteToFile<T>(Func<T, FileInfo, long> func, T input, string inputName, FileInfo output) {
+		Console.Write($"{inputName} -> {output.Name} ... ");
+		try {
+			func(input, output);
+		} catch {
+			Console.WriteLine("Failed.");
+			return 4;
+		}
+		Console.WriteLine("Done.");
+		return 0;
+	}
 }
