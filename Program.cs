@@ -44,9 +44,9 @@ if (args[0] == "e") {
 		// Read from file
 		if (args is [.., "-"]) {
 			// Write to stdout
-			return !File.Exists(args[1])
-				? 2
-				: Helpers.WriteToStdOut(Base16384.EncodeFromFileToStream, new FileInfo(args[1]));
+			return File.Exists(args[1])
+				? Helpers.WriteToStdOut(Base16384.EncodeFromFileToStream, new FileInfo(args[1]))
+				: 2;
 		} else if (args.Length == 2) {
 			// Write to .decoded file
 			if (!File.Exists(args[1])) {
@@ -96,28 +96,20 @@ if (args[0] == "e") {
 			using var stdin = Console.OpenStandardInput();
 			if (args.Length == 2 || args[2] == "-") {
 				// Write to stdout
-				try {
-					using var stdout = Console.OpenStandardOutput();
-					try {
-						Base16384.DecodeToStream(stdin, stdout);
-					} catch {
-						return 4;
-					}
-				} catch {
-					return 3;
-				}
-			} else {
-				// Write to file
-				FileInfo info = new(args[2]);
-				Console.Write($"<stdin> -> {info.Name} ... ");
-				try {
-					Base16384.DecodeToNewFile(stdin, info);
-				} catch {
-					Console.WriteLine("Failed.");
-					return 4;
-				}
-				Console.WriteLine("Done.");
+				return Helpers.WriteToStdOut(Base16384.DecodeToStream, stdin);
 			}
+
+			// Write to file
+			FileInfo info = new(args[2]);
+			Console.Write($"<stdin> -> {info.Name} ... ");
+			try {
+				Base16384.DecodeToNewFile(stdin, info);
+			} catch {
+				Console.WriteLine("Failed.");
+				return 4;
+			}
+			Console.WriteLine("Done.");
+
 		} catch {
 			if (args.Length != 2 && args[2] != "-") {
 				Console.WriteLine("Can not open stdin.");
@@ -128,20 +120,9 @@ if (args[0] == "e") {
 		// Read from file
 		if (args is [.., "-"]) {
 			// Write to stdout
-			if (!File.Exists(args[1])) {
-				Console.WriteLine("Source file not found.");
-				return 2;
-			}
-			try {
-				using var stdout = Console.OpenStandardOutput();
-				try {
-					Base16384.DecodeFromFileToStream(new(args[1]), stdout);
-				} catch {
-					return 4;
-				}
-			} catch {
-				return 3;
-			}
+			return File.Exists(args[1])
+				? Helpers.WriteToStdOut(Base16384.DecodeFromFileToStream, new FileInfo(args[1]))
+				: 2;
 		} else if (args.Length == 2) {
 			// Write to .decoded file
 			if (!File.Exists(args[1])) {
