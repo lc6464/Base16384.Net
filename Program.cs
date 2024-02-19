@@ -1,4 +1,4 @@
-﻿// 新的解析方式：https://github.com/execute233/Base16384.Net
+﻿// 新的解析方式：Base16384.Net.exe <"e" | "d"> <source | "-"> [out | "-"]
 /*
 错误代码：
 1. 无法解析命令行参数
