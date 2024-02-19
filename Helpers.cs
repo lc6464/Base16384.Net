@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace ConsoleHelpers;
 
 public static class Helpers {
 	public static readonly string? debugEnv = Environment.GetEnvironmentVariable("Base16384_Net_Debug");
-	public static readonly bool DEBUG = debugEnv is not null && debugEnv.ToLower() is not "false" and not "0";
+	public static readonly bool DEBUG = debugEnv is not null && debugEnv.ToLower(new CultureInfo("en-US", false)) is not "false" and not "0";
 
 
 	public static int PrintErrorMessage(string? message, string? debugMessage = null, int exitCode = 0) {
