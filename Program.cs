@@ -8,6 +8,23 @@
 5. 无法创建输出文件夹（可能是输出文件夹是一个已存在的文件）
 */
 
+if (args is ["debug", string]) {
+	var lower = args[1].ToLower(new CultureInfo("en-US", false));
+	if (lower == "enable") {
+		Environment.SetEnvironmentVariable("Base16384_Net_Debug", "true");
+		Console.WriteLine("Debug mode is enabled.");
+		return 0;
+	}
+	if (lower == "disable") {
+		Environment.SetEnvironmentVariable("Base16384_Net_Debug", null);
+		Console.WriteLine("Debug mode is disabled.");
+		return 0;
+	}
+
+	Console.WriteLine("Usage: Base16384.Net.exe <\"e\" | \"d\"> <source | \"-\"> [out | \"-\"]");
+	return 1;
+}
+
 
 if (args.Length is not 2 and not 3 || args is not ["e", ..] and not ["d", ..]) {
 	Console.WriteLine("Usage: Base16384.Net.exe <\"e\" | \"d\"> <source | \"-\"> [out | \"-\"]");
@@ -93,12 +110,12 @@ if (args[1].Contains(',')) {
 		output = new(Path.Combine(outputDirectoryInfo.FullName, input.Name));
 
 		if (output.Exists) {
-			Console.WriteLine($"{input.Name} -> {output.Name} ... The output file in the directory {outputDirectoryInfo.Name} already exists.");
+			Console.WriteLine($"{input.Name} -> {output.Name} ... The output file in the directory \"{outputDirectoryInfo.Name}\" already exists.");
 			continue;
 		}
 
 		if (!input.Exists) {
-			Console.WriteLine($"{input.Name} -> Source file not found.");
+			Console.WriteLine($"{input.Name} -> {output.Name} ... Source file not found.");
 			continue;
 		}
 
@@ -131,20 +148,38 @@ if (!File.Exists(args[1])) {
 		}
 
 		FileInfo output;
-		string relativePath;
+		DirectoryInfo outputParentDirectoryInfo;
+		string relativePath, relativeDirectory;
 
 		// foreach files in the list
 		foreach (var input in inputDirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories)) {
 			relativePath = Path.GetRelativePath(inputDirectoryInfo.FullName, input.FullName);
 			output = new(Path.Combine(outputDirectoryInfo.FullName, relativePath));
+			relativeDirectory = Path.GetDirectoryName(relativePath)!;
+			relativeDirectory = string.IsNullOrWhiteSpace(relativeDirectory) ? "." : relativeDirectory;
+
+			outputParentDirectoryInfo = output.Directory!;
+
+			if (!outputParentDirectoryInfo.Exists) {
+				if (File.Exists(outputParentDirectoryInfo.FullName)) {
+					Console.WriteLine($"{input.Name} -> {output.Name} ... The output directory \"{relativeDirectory}\" is an existing file.");
+				}
+
+				try {
+					outputParentDirectoryInfo.Create();
+				} catch (Exception e) {
+					Helpers.PrintException($"{input.Name} -> {output.Name} ... Failed to create output directory \"{outputParentDirectoryInfo.FullName}\".", e, 5);
+					continue;
+				}
+			}
 
 			if (output.Exists) {
-				Console.WriteLine($"{input.Name} -> {output.Name} ... The output file in the directory {Path.GetDirectoryName(relativePath)} already exists.");
+				Console.WriteLine($"{input.Name} -> {output.Name} ... The output file in the directory \"{relativeDirectory}\" already exists.");
 				continue;
 			}
 
 			if (!input.Exists) {
-				Console.WriteLine($"{input.Name} -> Source file not found.");
+				Console.WriteLine($"{input.Name} -> {output.Name} ... Source file not found.");
 				continue;
 			}
 
