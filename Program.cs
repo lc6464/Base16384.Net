@@ -2,7 +2,7 @@
 /*
 错误代码：
 1. 无法解析命令行参数
-2. 无法读取文件（可能是文件不存在）
+2. 无法读写文件（可能是文件不存在或文件名存在问题）
 3. Standard IO Stream 开启失败
 4. 编解码失败
 5. 无法创建输出文件夹（可能是输出文件夹是一个已存在的文件）
@@ -30,8 +30,12 @@ if (readFromStdin) { // Read from stdin
 
 		// Write to file
 
-		return Helpers.WriteToFile(isEncodeMode ? Base16384.EncodeToNewFile : Base16384.DecodeToNewFile,
-			 stdin, new(args[2]), "<stdin>");
+		FileInfo output = new(args[2]);
+
+		return output.Exists
+			? Helpers.PrintErrorMessage("The output file already exists.", null, 2)
+			: Helpers.WriteToFile(isEncodeMode ? Base16384.EncodeToNewFile : Base16384.DecodeToNewFile,
+			 stdin, output, "<stdin>");
 
 	} catch (Exception e) {
 
@@ -52,19 +56,70 @@ if (writeToStdout) { // Write to stdout
 
 }
 
+
 // Write to file
+
+var codedString = $"{(isEncodeMode ? "en" : "de")}coded";
+
+if (!isDefaultOutput && args[2].Contains(',')) {
+	return Helpers.PrintErrorMessage("Output file or directory cannot be a list.", null, 2);
+}
+
+// Encode or decode multiple files
+if (args[1].Contains(',')) {
+	if (args[1].StartsWith(',') || args[1].EndsWith(',')) {
+		return Helpers.PrintErrorMessage("Invalid file list.", null, 2);
+	}
+
+	DirectoryInfo outputDirectoryInfo = new(isDefaultOutput ? codedString : args[2]);
+
+	if (!outputDirectoryInfo.Exists) { // Try to create output directory
+		if (File.Exists(outputDirectoryInfo.FullName)) {
+			return Helpers.PrintErrorMessage("Output directory is an existing file.", null, 5);
+		}
+
+		try {
+			outputDirectoryInfo.Create();
+		} catch (Exception e) {
+			return Helpers.PrintException("Failed to create output directory.", e, 5);
+		}
+	}
+
+	FileInfo input, output;
+
+	// foreach files in the list
+	foreach (var file in args[1].Split(',')) {
+		input = new(file);
+		output = new(Path.Combine(outputDirectoryInfo.FullName, input.Name));
+
+		if (output.Exists) {
+			Console.WriteLine($"{input.Name} -> {output.Name} ... The output file in the directory {outputDirectoryInfo.Name} already exists.");
+			continue;
+		}
+
+		if (!input.Exists) {
+			Console.WriteLine($"{input.Name} -> Source file not found.");
+			continue;
+		}
+
+		Helpers.Execute(isEncodeMode ? Base16384.EncodeFromFileToNewFile : Base16384.DecodeFromFileToNewFile,
+						input, output, input.Name, output.Name);
+	}
+
+	return 0;
+
+}
 
 // File not found or Directory exists
 if (!File.Exists(args[1])) {
 
-	if (Directory.Exists(args[1])) { // Encode all files in the directory
+	if (Directory.Exists(args[1])) { // Encode or decode all files in the directory
 
-		var output = isDefaultOutput ? $"{(isEncodeMode ? "en" : "de")}coded" : args[2];
 		DirectoryInfo inputDirectoryInfo = new(args[1]),
-			outputDirectoryInfo = new(output);
+			outputDirectoryInfo = new(isDefaultOutput ? codedString : args[2]);
 
 		if (!outputDirectoryInfo.Exists) { // Try to create output directory
-			if (File.Exists(output)) {
+			if (File.Exists(outputDirectoryInfo.FullName)) {
 				return Helpers.PrintErrorMessage("Output directory is an existing file.", null, 5);
 			}
 
@@ -75,7 +130,27 @@ if (!File.Exists(args[1])) {
 			}
 		}
 
-		// 此处应该遍历文件夹
+		FileInfo output;
+		string relativePath;
+
+		// foreach files in the list
+		foreach (var input in inputDirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories)) {
+			relativePath = Path.GetRelativePath(inputDirectoryInfo.FullName, input.FullName);
+			output = new(Path.Combine(outputDirectoryInfo.FullName, relativePath));
+
+			if (output.Exists) {
+				Console.WriteLine($"{input.Name} -> {output.Name} ... The output file in the directory {Path.GetDirectoryName(relativePath)} already exists.");
+				continue;
+			}
+
+			if (!input.Exists) {
+				Console.WriteLine($"{input.Name} -> Source file not found.");
+				continue;
+			}
+
+			Helpers.Execute(isEncodeMode ? Base16384.EncodeFromFileToNewFile : Base16384.DecodeFromFileToNewFile,
+							input, output, input.Name, output.Name);
+		}
 
 		return 0;
 	}
@@ -83,10 +158,19 @@ if (!File.Exists(args[1])) {
 	return Helpers.PrintErrorMessage("Source file not found.", null, 2);
 }
 
-// Encode single file
-
+// Encode or decode single file
 FileInfo inputFileInfo = new(args[1]),
-		outputFileInfo = new(isDefaultOutput ? $"{args[1]}.{(isEncodeMode ? "en" : "de")}coded" : args[2]);
+		outputFileInfo = new(isDefaultOutput ? $"{args[1]}.{codedString}" : args[2]);
 
-return Helpers.Execute(isEncodeMode ? Base16384.EncodeFromFileToNewFile : Base16384.DecodeFromFileToNewFile,
+if (outputFileInfo.Exists) {
+	return Helpers.PrintErrorMessage($"{inputFileInfo.Name} -> {outputFileInfo.Name} ... The output file already exists.", null, 2);
+}
+
+if (!inputFileInfo.Exists) {
+	return Helpers.PrintErrorMessage(null, $"{inputFileInfo.Name} -> Source file not found.", 2);
+}
+
+Helpers.Execute(isEncodeMode ? Base16384.EncodeFromFileToNewFile : Base16384.DecodeFromFileToNewFile,
 	inputFileInfo, outputFileInfo, inputFileInfo.Name, outputFileInfo.Name);
+
+return 0;
