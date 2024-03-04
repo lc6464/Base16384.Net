@@ -104,7 +104,7 @@ if (args[1].Contains(',')) {
 		}
 	}
 
-	FileInfo input, output;
+	FileInfo? input = null, output = null;
 
 	// foreach files in the list
 	foreach (var file in args[1].Split(',')) {
@@ -149,9 +149,9 @@ if (!File.Exists(args[1])) {
 			}
 		}
 
-		FileInfo output;
-		DirectoryInfo outputParentDirectoryInfo;
-		string relativePath, relativeDirectory;
+		FileInfo? output = null;
+		DirectoryInfo? outputParentDirectoryInfo = null;
+		string? relativePath = null, relativeDirectory = null;
 
 		// foreach files in the list
 		foreach (var input in inputDirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories)) {
