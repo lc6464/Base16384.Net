@@ -68,11 +68,15 @@ if (readFromStdin) { // Read from stdin
 
 if (writeToStdout) { // Write to stdout
 
-	return File.Exists(args[1])
-		? Helpers.WriteToStdOut(isEncodeMode ? Base16384.EncodeFromFileToStream : Base16384.DecodeFromFileToStream,
-			new FileInfo(args[1]))
-		: Helpers.PrintErrorMessage(null, "Source file not found.", 2);
+	if (args[1].Contains(',')) {
+		return Helpers.PrintErrorMessage(null, "Source file cannot be a list when writing to stdout.", 2);
+	}
 
+	if (!File.Exists(args[1])) {
+		return Helpers.PrintErrorMessage(null, "Source file not found.", 2);
+	}
+
+	return Helpers.WriteToStdOut(isEncodeMode ? Base16384.EncodeFromFileToStream : Base16384.DecodeFromFileToStream, new FileInfo(args[1]));
 }
 
 
