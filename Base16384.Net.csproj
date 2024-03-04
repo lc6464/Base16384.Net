@@ -11,8 +11,9 @@
 		<PackageReference Include="LC6464.Base16384" Version="2.1.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<Using Include="ConsoleHelpers" />
+		
 		<Using Include="LC6464.Base16384" />
+		<Using Include="ConsoleHelpers" />
 		<Using Include="System.Globalization" />
 		<Using Include="System.Runtime.InteropServices" />
 	</ItemGroup>

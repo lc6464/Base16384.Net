@@ -11,13 +11,15 @@
 if (args is ["debug", string]) {
 	var lower = args[1].ToLower(new CultureInfo("en-US", false));
 	if (lower == "enable") {
-		Environment.SetEnvironmentVariable("Base16384_Net_Debug", "true");
-		Console.WriteLine("Debug mode is enabled.");
+		Console.WriteLine("$env:Base16384_Net_Debug = 1");
+		Console.WriteLine("export Base16384_Net_Debug=1");
+		Console.WriteLine("set Base16384_Net_Debug=1");
 		return 0;
 	}
 	if (lower == "disable") {
-		Environment.SetEnvironmentVariable("Base16384_Net_Debug", null);
-		Console.WriteLine("Debug mode is disabled.");
+		Console.WriteLine("$env:Base16384_Net_Debug = $null");
+		Console.WriteLine("unset Base16384_Net_Debug");
+		Console.WriteLine("set Base16384_Net_Debug=");
 		return 0;
 	}
 
@@ -168,7 +170,7 @@ if (!File.Exists(args[1])) {
 				try {
 					outputParentDirectoryInfo.Create();
 				} catch (Exception e) {
-					Helpers.PrintException($"{input.Name} -> {output.Name} ... Failed to create output directory \"{outputParentDirectoryInfo.FullName}\".", e, 5);
+					_ = Helpers.PrintException($"{input.Name} -> {output.Name} ... Failed to create output directory \"{outputParentDirectoryInfo.FullName}\".", e, 5);
 					continue;
 				}
 			}
