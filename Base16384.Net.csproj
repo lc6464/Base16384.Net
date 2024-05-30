@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
@@ -7,14 +8,16 @@
 		<Version>2.0.0.0</Version>
 		<Platforms>x64</Platforms>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="LC6464.Base16384" Version="2.1.0" />
 	</ItemGroup>
+
 	<ItemGroup>
-		
 		<Using Include="LC6464.Base16384" />
 		<Using Include="ConsoleHelpers" />
 		<Using Include="System.Globalization" />
 		<Using Include="System.Runtime.InteropServices" />
 	</ItemGroup>
+
 </Project>
