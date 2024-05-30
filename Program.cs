@@ -1,15 +1,5 @@
-﻿// 新的解析方式：Base16384.Net.exe <"e" | "d"> <source | "-"> [out | "-"]
-/*
-错误代码：
-1. 无法解析命令行参数
-2. 无法读写文件（可能是文件不存在或文件名存在问题）
-3. Standard IO Stream 开启失败
-4. 编解码失败
-5. 无法创建输出文件夹（可能是输出文件夹是一个已存在的文件）
-*/
-
-if (args is ["debug", string]) {
-	var lower = args[1].ToLower(new CultureInfo("en-US", false));
+﻿if (args is ["debug", string]) {
+	var lower = args[1].ToLower(Helpers.cultureInfoEnUs);
 	if (lower == "enable") {
 		Console.WriteLine("$env:Base16384_Net_Debug = 1");
 		Console.WriteLine("export Base16384_Net_Debug=1");

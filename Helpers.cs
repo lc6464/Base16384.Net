@@ -3,8 +3,10 @@
 namespace ConsoleHelpers;
 
 public static class Helpers {
+	public static readonly CultureInfo cultureInfoEnUs = new("en-US", false);
+
 	public static readonly string? debugEnv = Environment.GetEnvironmentVariable("Base16384_Net_Debug");
-	public static readonly bool DEBUG = !string.IsNullOrWhiteSpace(debugEnv) && debugEnv.ToLower(new CultureInfo("en-US", false)) is not "false" and not "0";
+	public static readonly bool DEBUG = !string.IsNullOrWhiteSpace(debugEnv) && debugEnv.ToLower(cultureInfoEnUs) is not "false" and not "0";
 
 
 	public static int PrintErrorMessage(string? message, string? debugMessage = null, int exitCode = 0) {
